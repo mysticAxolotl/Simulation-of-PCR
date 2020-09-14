@@ -86,6 +86,26 @@ def PCR(dna_segment_to_be_copied, fall_of_rate, num_cycles):
 # return: null
 def getStats(PCR_products):
     # ...
+    # Print out the number of DNA fragments in PCR products
+    print('The number of DNA fragements are: ', PCR_products.count())
+    # Prints the maximum lenth of a DNA strand in PCR products
+    print('The maximum length of the DNA fragments are: ', max(len(PCR_products)))
+    # Prints the minimum length of a DNA strand in PCR products
+    print('The minimum length of the DNA fragments are: ', min(len(PCR_products)))
+    # Calculates the average length of all the DNA fragments in PCR products
+    temp = len(PCR_products)
+    average_DNA = (float(sum(temp) / len(temp))
+    print('The average length of the DNA fragments are: ', average_DNA)
+    # Distribution of lengths of DNA fragments, uses temp as it is the length of PCR products
+    elements = (element1, element2, element3, element4, element5) #elements a
+    plt.xticks(temp, elements)
+    plt.xlabel('Length range')
+    plt.ylabel('Number of fragments in the range')
+    plt.bar(temp, number_in_range)
+    plt.title('Distribution of Lengths of DNA strands')
+    #Convert all of the ATGC to upper case then search for GC content over the total length of PCR products
+    average_GC_temp = PCR_products.upper()
+    average_GC = (average_GC_temp.count('G') + average_GC_temp.count('C')) / len(average_GC_temp)
     print()
     return
 
