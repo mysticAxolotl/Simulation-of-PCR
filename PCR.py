@@ -94,7 +94,7 @@ def getStats(PCR_products):
     print('The minimum length of the DNA fragments are: ', min(len(PCR_products)))
     # Calculates the average length of all the DNA fragments in PCR products
     temp = len(PCR_products)
-    average_DNA = (float(sum(temp) / len(temp))
+    average_DNA = (float(sum(temp) / len(temp)))
     print('The average length of the DNA fragments are: ', average_DNA)
     # Distribution of lengths of DNA fragments, uses temp as it is the length of PCR products
     elements = (element1, element2, element3, element4, element5) #elements a
