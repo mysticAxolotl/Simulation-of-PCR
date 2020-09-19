@@ -35,6 +35,7 @@ def getPrimers():
     r_primer = ('GTGAGAGCGGTGAACCAAGA', 170, 151, 55)
     return f_primer, r_primer
 
+
 # param: a list of single strand dna segments, each segment is from 5" to 3"
 # return: a list of tuples of 2 strs (2 dna segments from 5" to 3")
 def annealing_elongation(singleStrandDNAs, primers, fall_of_rate):
@@ -154,6 +155,6 @@ DNA_N = (cDNA_N, tDNA_N)
 # end of cDNA_N as it is now.
 
 f_primer, r_primer = getPrimers()
-primerStrands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1]], DNA_N[0][::-1][f_primer[1] - 1:r_primer[1]])
+primerStrands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1]], (DNA_N[0][::-1][f_primer[1] - 1:r_primer[1]])[::-1])
 print(primerStrands[0] + '\n')
 print(primerStrands[1] + '\n')
