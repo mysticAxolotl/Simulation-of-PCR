@@ -1,18 +1,12 @@
 
+import matplotlib
+import pandas
+import numpy
 import os
 
 #
 #     Given Functions/Code
 #
-
-# a python function
-def get_GCcontent(dna):
-    dna = dna.upper()
-    return (dna.count("C")+dna.count("G"))/len(dna)
-
-
-# dna1 = "ATGaCGgaTCAGCCGcAAtACataCACTgttca"
-# print(get_GCcontent(dna1))
 
 # param: a double strand dna, a tuple of 2 strings, representing 2 segments of dna from 5" to 3"
 # return: a tuple of 2 strs representing the pair of primers (5" -> 3", GC content > 40%, bases btw the 2 primers: ~200)
@@ -80,6 +74,7 @@ def getStats(PCR_products):
     print('The average length of the DNA fragments are: ', average_DNA)
     # Distribution of lengths of DNA fragments, uses temp as it is the length of PCR products
     elements = (element1, element2, element3, element4, element5) #elements a
+    plt.figure()
     plt.xticks(temp, elements)
     plt.xlabel('Length range')
     plt.ylabel('Number of fragments in the range')
@@ -122,6 +117,9 @@ def getStats(PCR_products):
 
 # Potential New Code, TODO: Fit into the above functions
 
+import matplotlib
+import pandas
+import numpy
 import os
 
 # Run only once to generate n_gene.txt
