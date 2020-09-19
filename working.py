@@ -61,28 +61,32 @@ def PCR(dna_segment_to_be_copied, fall_of_rate, num_cycles):
 # return: null
 def getStats(PCR_products):
     # ...
+    dna_segment_lengths = []
+    dna_gc_contents = []
+    dna_segment_lengths.append(len(pair[0]))
+    dna_segment_lengths.append(len(pair[1]))
     # Print out the number of DNA fragments in PCR products
-    print('The number of DNA fragements are: ', PCR_products.count())
+    print('The number of DNA fragements are: ', (2 * len(PCR_products))
     # Prints the maximum lenth of a DNA strand in PCR products
-    print('The maximum length of the DNA fragments are: ', max(len(PCR_products)))
+    print('The maximum length of the DNA fragments are: ', max(PCR_products))
     # Prints the minimum length of a DNA strand in PCR products
-    print('The minimum length of the DNA fragments are: ', min(len(PCR_products)))
+    print('The minimum length of the DNA fragments are: ', min(PCR_products))
     # Calculates the average length of all the DNA fragments in PCR products
-    temp = len(PCR_products)
+    temp = (PCR_products)
     average_DNA = (float(sum(temp) / len(temp)))
     print('The average length of the DNA fragments are: ', average_DNA)
     # Distribution of lengths of DNA fragments, uses temp as it is the length of PCR products
-    elements = (element1, element2, element3, element4, element5) #elements a
+    hist = plt.hist(PCR_products) #elements a
     plt.figure()
-    plt.xticks(temp, elements)
     plt.xlabel('Length range')
-    plt.ylabel('Number of fragments in the range')
-    plt.bar(temp, number_in_range)
+    plt.ylabel('Frequency')
     plt.title('Distribution of Lengths of DNA strands')
     #Convert all of the ATGC to upper case then search for GC content over the total length of PCR products
-    average_GC_temp = PCR_products.upper()
-    average_GC = (average_GC_temp.count('G') + average_GC_temp.count('C')) / len(average_GC_temp)
-    print()
+    average_gc_temp = PCR_products.upper()
+    dna_c_content = pair[1].count('C')
+    dna_g_content = pair[1].count('G')
+    average_gc = (dna_c_content + dna_g_content)
+    print('The Average GC Content is: ', average_gc)
     return
 
 
