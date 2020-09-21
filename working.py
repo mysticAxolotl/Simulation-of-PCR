@@ -24,9 +24,13 @@ def reverse_complement(dna5_3):  # input is a strand from 5' to 3'
 # return: a list of single strand dna segments
 def denaturation(dna_segments):
     singleStrandDNAs = []
+    for i in dna_segments:
+        singleStrandDNAs.append(i[0])
+        singleStrandDNAs.append(i[1])
+        
     return singleStrandDNAs
 
-### POTENETIALL DO NOT NEED
+### POTENTIALLY DO NOT NEED
 # param: a double strand dna, a tuple of 2 strings, representing 2 segments of dna from 5' to 3'
 # return: a tuple of 2 strs representing the pair of primers (5' -> 3', GC content > 40%, bases btw the 2 primers: ~200)
 def getPrimers():
@@ -38,7 +42,7 @@ def getPrimers():
 
 # param: a list of single strand dna segments, each segment is from 5' to 3'
 # return: a list of tuples of 2 strs (2 dna segments from 5' to 3')
-def annealing_elongation(singleStrandDNAs, primers, fall_of_rate):
+def annealing_elongation(singleStrandDNAs, primers, fall_off_rate):
     # ...
     doubleStrandedDNAs = [('a','a'),('a','a')]  # get your sequence of dnas
     return doubleStrandedDNAs
@@ -46,13 +50,13 @@ def annealing_elongation(singleStrandDNAs, primers, fall_of_rate):
 
 # param: gene to be copied (a tuple of 2 strs, 5' -> 3'), fall of rate of DNA polymerase (int), and num_cycles to run PCR (int)
 # return: a list of double stranded dna segments
-def PCR(dna_segment_to_be_copied, fall_of_rate, num_cycles):
+def PCR(dna_segment_to_be_copied, fall_off_rate, num_cycles):
     # ....
 
     PCRproducts = [dna_segment_to_be_copied]
     for i in range(num_cycles):
         singleStrandDNAs = denaturation(PCRproducts)
-        PCRproducts = annealing_elongation(singleStrandDNAs, getPrimers(), fall_of_rate)
+        PCRproducts = annealing_elongation(singleStrandDNAs, getPrimers(), fall_off_rate)
 
     return PCRproducts
 
