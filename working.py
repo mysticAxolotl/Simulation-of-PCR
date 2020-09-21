@@ -27,7 +27,7 @@ def denaturation(dna_segments):
     for i in dna_segments:
         singleStrandDNAs.append(i[0])
         singleStrandDNAs.append(i[1])
-        
+
     return singleStrandDNAs
 
 ### POTENTIALLY DO NOT NEED
@@ -70,7 +70,7 @@ def getStats(PCR_products):
     dna_segment_lengths.append(len(pair[0]))
     dna_segment_lengths.append(len(pair[1]))
     # Print out the number of DNA fragments in PCR products
-    print('The number of DNA fragements are: ', (2 * len(PCR_products))
+    print('The number of DNA fragements are: ', (2 * len(PCR_products)))
     # Prints the maximum lenth of a DNA strand in PCR products
     print('The maximum length of the DNA fragments are: ', max(PCR_products))
     # Prints the minimum length of a DNA strand in PCR products
