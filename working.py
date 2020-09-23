@@ -96,10 +96,12 @@ def getStats(PCR_products):
 
 # Potential New Code, TODO: Fit into the above functions
 
+from random import randint
 import matplotlib
 import pandas
 import numpy
 import os
+
 
 # Run only once to generate n_gene.txt
 if not(os.path.exists('./n_gene.txt')):
@@ -122,7 +124,7 @@ file = open('n_gene.txt', 'r')
 tDNA_N = file.read() # template DNA strand for N gene (lecture 7, 32:35)
 file.close()
 
-# TODO: tDNA_N should have our entire DNA strand from 3' -> 5'
+# tDNA_N has our entire DNA strand from 3' -> 5'
 # If the above is true, then I believe we next generate the reverse compliment strand/coding strand:
 cDNA_N = reverse_complement(tDNA_N) # This is in 5' -> 3'
 
@@ -132,12 +134,12 @@ tDNA_N = tDNA_N[::-1]
 # Store these as a tuple, 5' -> 3'
 DNA_N = (cDNA_N, tDNA_N)
 
-# TODO: For the annealing_elongation portion, translating what she said, I think the forward primer
-# goes on the start of tDNA_N after tDNA_N has been reversed. The reverse primer goes on the
-# end of cDNA_N as it is now.
-
 f_primer, r_primer = getPrimers()
 # This is in 5' -> 3'
-primerStrands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1]], (DNA_N[0][::-1][f_primer[1] - 1:r_primer[1]])[::-1])
-print(primerStrands[0] + '\n')
-print(primerStrands[1] + '\n')
+# The first strand here can go 50 past the end in order to buffer for the falloff,
+# the second strand is too close to the start of the gene, so a buffer of only 12 can exist. 
+initialStrands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1] + 41], (DNA_N[0][len(DNA_N[0]) - (159 + 11):]))
+#                |----------------len = 200 -----------------------|  |--------------len = 170 ------------|
+print(initialStrands[0] + '\n')
+print(initialStrands[1] + '\n')
+
