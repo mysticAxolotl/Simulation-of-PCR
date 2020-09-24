@@ -10,7 +10,7 @@ import os
 
 # param: a single strand 5' to 3' dna
 # return: a single strand 5' to 3' dna that is reverse complement to the input strand
-def reverse_complement(dna5_3):  # input is a strand from 5' to 3'
+def reverse_compliment(dna5_3):  # input is a strand from 5' to 3'
     rc_dna5_3 = dna5_3.replace('A', 'X')  # replace A by X
     rc_dna5_3 = rc_dna5_3.replace('T', 'A')  # replace T by A
     rc_dna5_3 = rc_dna5_3.replace('X', 'T')  # replace X by A
@@ -20,14 +20,23 @@ def reverse_complement(dna5_3):  # input is a strand from 5' to 3'
     rc_dna5_3 = rc_dna5_3[::-1]  # reverse the complementary strand to have a strand from 5' to 3'
     return rc_dna5_3
 
+# param: a single strand 5' to 3' dna
+# return: a single strand 5' to 3' dna that is reverse complement to the input strand
+def compliment(dna5_3):  # input is a strand from 5' to 3'
+    rc_dna5_3 = dna5_3.replace('A', 'X')  # replace A by X
+    rc_dna5_3 = rc_dna5_3.replace('T', 'A')  # replace T by A
+    rc_dna5_3 = rc_dna5_3.replace('X', 'T')  # replace X by A
+    rc_dna5_3 = rc_dna5_3.replace('C', 'X')  # replace C by X
+    rc_dna5_3 = rc_dna5_3.replace('G', 'C')
+    rc_dna5_3 = rc_dna5_3.replace('X', 'G')
+    return rc_dna5_3
+
 # param: a list of tuples of 2 strs, representing double stranded dna segments
 # return: a list of single strand dna segments
 def denaturation(dna_segments):
     singleStrandDNAs = []
-    for i in dna_segments:
-        singleStrandDNAs.append(i[0])
-        singleStrandDNAs.append(i[1])
-
+    singleStrandDNAs.append(dna_segments[0])
+    singleStrandDNAs.append(dna_segments[1])
     return singleStrandDNAs
 
 ### POTENTIALLY DO NOT NEED
@@ -96,10 +105,11 @@ def getStats(PCR_products):
 
 # Potential New Code, TODO: Fit into the above functions
 
-from random import randint
 import matplotlib
 import pandas
+import random
 import numpy
+import time
 import os
 
 
@@ -126,7 +136,7 @@ file.close()
 
 # tDNA_N has our entire DNA strand from 3' -> 5'
 # If the above is true, then I believe we next generate the reverse compliment strand/coding strand:
-cDNA_N = reverse_complement(tDNA_N) # This is in 5' -> 3'
+cDNA_N = reverse_compliment(tDNA_N) # This is in 5' -> 3'
 
 # Per her recomendation, keep the other one in 5' -> 3'
 tDNA_N = tDNA_N[::-1]
@@ -135,11 +145,52 @@ tDNA_N = tDNA_N[::-1]
 DNA_N = (cDNA_N, tDNA_N)
 
 f_primer, r_primer = getPrimers()
+f_compliment = compliment(f_primer[0])
+r_compliment = compliment(r_primer[0])
+
 # This is in 5' -> 3'
 # The first strand here can go 50 past the end in order to buffer for the falloff,
-# the second strand is too close to the start of the gene, so a buffer of only 12 can exist. 
-initialStrands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1] + 41], (DNA_N[0][len(DNA_N[0]) - (159 + 11):]))
+# the second strand is too close to the start of the gene, so a buffer of only 12 can exist.
+# initial_strands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1] + 41], (DNA_N[0][len(DNA_N[0]) - (159 + 11):]))
 #                |----------------len = 200 -----------------------|  |--------------len = 170 ------------|
-print(initialStrands[0] + '\n')
-print(initialStrands[1] + '\n')
+#print(initial_strands[0] + '\n')
+#print(initial_strands[1] + '\n')
 
+initial_strands = [DNA_N]
+random.seed(time.time())
+
+for i in range(4):
+    copies = []
+    for strand in initial_strands:
+        temp = []
+        single_segments = denaturation(strand)
+        for j in range(0, len(single_segments)):
+            temp1 = ''
+            falloff = random.randint(-50, 50) + 230
+            if r_compliment in single_segments[j]:
+                temp1 = r_primer[0] # potentially reverse r_primer[0]
+                reverse = single_segments[j]
+                start_index = reverse.find(r_compliment) + len(r_primer[0]) # might need reverse on r_compliment
+                end_index = start_index + falloff
+                temp2 = compliment(reverse[start_index:end_index])
+                temp1 = temp1 + temp2 # might need to reverse part of this
+                temp.append(temp1)
+            elif f_compliment[::-1] in single_segments[j]:
+                temp1 = f_primer[0]
+                start_index = single_segments[j].find(f_compliment) + len(f_compliment)
+                end_index = start_index + falloff
+                temp2 = compliment(single_segments[j][start_index:end_index])
+                temp1 = temp1 + temp2
+                temp.append(temp1)
+            else:
+                temp.append(temp1)
+        copies.append(tuple(temp))
+    initial_strands.extend(copies)
+
+print("Done")
+segment_lengths = []
+for pair in initial_strands:
+       for strand in pair:
+           if strand != '':
+               segment_lengths.append(len(strand))
+len(segment_lengths)
