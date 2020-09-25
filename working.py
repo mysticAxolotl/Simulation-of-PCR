@@ -159,31 +159,27 @@ r_compliment = compliment(r_primer[0])
 initial_strands = [DNA_N]
 random.seed(time.time())
 
-for i in range(4):
+for i in range(25):
     copies = []
     for strand in initial_strands:
         temp = []
         single_segments = denaturation(strand)
         for j in range(0, len(single_segments)):
-            temp1 = ''
-            falloff = random.randint(-50, 50) + 230
+            falloff = random.randint(-50, 50) + 209
             if r_compliment in single_segments[j]:
-                temp1 = r_primer[0] # potentially reverse r_primer[0]
-                reverse = single_segments[j]
-                start_index = reverse.find(r_compliment) + len(r_primer[0]) # might need reverse on r_compliment
+                start_index = single_segments[j].find(r_compliment) + len(r_primer[0])
                 end_index = start_index + falloff
-                temp2 = compliment(reverse[start_index:end_index])
-                temp1 = temp1 + temp2 # might need to reverse part of this
+                temp1 = compliment(single_segments[j][start_index:end_index])
+                temp1 = r_primer[0] + temp1
                 temp.append(temp1)
-            elif f_compliment[::-1] in single_segments[j]:
-                temp1 = f_primer[0]
-                start_index = single_segments[j].find(f_compliment) + len(f_compliment)
+            elif f_compliment in single_segments[j][::-1]:
+                start_index = single_segments[j][::-1].find(f_compliment) # + len(f_compliment)
                 end_index = start_index + falloff
-                temp2 = compliment(single_segments[j][start_index:end_index])
-                temp1 = temp1 + temp2
+                temp1 = compliment(single_segments[j][::-1][start_index:end_index])[::-1]
+                temp1 = f_primer[0] + temp1
                 temp.append(temp1)
             else:
-                temp.append(temp1)
+                temp.append('')
         copies.append(tuple(temp))
     initial_strands.extend(copies)
 
