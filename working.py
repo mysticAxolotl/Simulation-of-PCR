@@ -125,7 +125,7 @@ initial_strands = [DNA_N]
 random.seed(time.time())
 
 start_time = time.time()
-for i in range(4):
+for i in range(29):
     copies = []
     for strand in initial_strands:
         temp = []
