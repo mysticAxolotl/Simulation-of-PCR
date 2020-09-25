@@ -1,12 +1,10 @@
 
 import matplotlib
 import pandas
+import random
 import numpy
+import time
 import os
-
-#
-#     Given Functions/Code
-#
 
 # param: a single strand 5' to 3' dna
 # return: a single strand 5' to 3' dna that is reverse complement to the input strand
@@ -39,7 +37,6 @@ def denaturation(dna_segments):
     singleStrandDNAs.append(dna_segments[1])
     return singleStrandDNAs
 
-### POTENTIALLY DO NOT NEED
 # param: a double strand dna, a tuple of 2 strings, representing 2 segments of dna from 5' to 3'
 # return: a tuple of 2 strs representing the pair of primers (5' -> 3', GC content > 40%, bases btw the 2 primers: ~200)
 def getPrimers():
@@ -47,29 +44,6 @@ def getPrimers():
     f_primer = ('TGGACCCCAAAATCAGCGAA', 12, 31, 50)
     r_primer = ('GTGAGAGCGGTGAACCAAGA', 170, 151, 55)
     return f_primer, r_primer
-
-
-# param: a list of single strand dna segments, each segment is from 5' to 3'
-# return: a list of tuples of 2 strs (2 dna segments from 5' to 3')
-def annealing_elongation(singleStrandDNAs, primers, fall_off_rate):
-    # ...
-    doubleStrandedDNAs = [('a','a'),('a','a')]  # get your sequence of dnas
-    return doubleStrandedDNAs
-
-
-# param: gene to be copied (a tuple of 2 strs, 5' -> 3'), fall of rate of DNA polymerase (int), and num_cycles to run PCR (int)
-# return: a list of double stranded dna segments
-def PCR(dna_segment_to_be_copied, fall_off_rate, num_cycles):
-    # ....
-
-    PCRproducts = [dna_segment_to_be_copied]
-    for i in range(num_cycles):
-        singleStrandDNAs = denaturation(PCRproducts)
-        PCRproducts = annealing_elongation(singleStrandDNAs, getPrimers(), fall_off_rate)
-
-    return PCRproducts
-
-
 # param: a list of tuples of 2 strings representing double stranded DNA segments
 # return: null
 def getStats(PCR_products):
@@ -101,17 +75,6 @@ def getStats(PCR_products):
     average_gc = (dna_c_content + dna_g_content)
     print('The Average GC Content is: ', average_gc)
     return
-
-
-# Potential New Code, TODO: Fit into the above functions
-
-import matplotlib
-import pandas
-import random
-import numpy
-import time
-import os
-
 
 # Run only once to generate n_gene.txt
 if not(os.path.exists('./n_gene.txt')):
@@ -148,24 +111,17 @@ f_primer, r_primer = getPrimers()
 f_compliment = compliment(f_primer[0])
 r_compliment = compliment(r_primer[0])
 
-# This is in 5' -> 3'
-# The first strand here can go 50 past the end in order to buffer for the falloff,
-# the second strand is too close to the start of the gene, so a buffer of only 12 can exist.
-# initial_strands = ((DNA_N[1][::-1])[f_primer[1] - 1:r_primer[1] + 41], (DNA_N[0][len(DNA_N[0]) - (159 + 11):]))
-#                |----------------len = 200 -----------------------|  |--------------len = 170 ------------|
-#print(initial_strands[0] + '\n')
-#print(initial_strands[1] + '\n')
-
 initial_strands = [DNA_N]
 random.seed(time.time())
 
-for i in range(25):
+start_time = time.time()
+for i in range(29):
     copies = []
     for strand in initial_strands:
         temp = []
         single_segments = denaturation(strand)
         for j in range(0, len(single_segments)):
-            falloff = random.randint(-50, 50) + 209
+            falloff = random.randint(-50, 50) + 178
             if r_compliment in single_segments[j]:
                 start_index = single_segments[j].find(r_compliment) + len(r_primer[0])
                 end_index = start_index + falloff
@@ -173,7 +129,7 @@ for i in range(25):
                 temp1 = r_primer[0] + temp1
                 temp.append(temp1)
             elif f_compliment in single_segments[j][::-1]:
-                start_index = single_segments[j][::-1].find(f_compliment) # + len(f_compliment)
+                start_index = single_segments[j][::-1].find(f_compliment)
                 end_index = start_index + falloff
                 temp1 = compliment(single_segments[j][::-1][start_index:end_index])[::-1]
                 temp1 = f_primer[0] + temp1
@@ -183,10 +139,11 @@ for i in range(25):
         copies.append(tuple(temp))
     initial_strands.extend(copies)
 
-print("Done")
+print(str((time.time() - start_time)/60) + " Minutes")
+
 segment_lengths = []
 for pair in initial_strands:
        for strand in pair:
            if strand != '':
                segment_lengths.append(len(strand))
-len(segment_lengths)
+print(len(segment_lengths))
