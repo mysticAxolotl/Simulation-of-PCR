@@ -1,5 +1,5 @@
-
-import matplotlib
+import matplotlib.pyplot as plt
+from collections import defaultdict
 import pandas
 import random
 import numpy
@@ -46,18 +46,17 @@ def getPrimers():
     return f_primer, r_primer
 # param: a list of tuples of 2 strings representing double stranded DNA segments
 # return: null
-def getStats(PCR_products):
-    single_strand = denaturation(PCR_products)
-    list_of_lengths = []
+def getStats(PCR_products, list_of_lengths):
     list_of_fragments = []
-    for k in range(0, len(single_strand)):
-        list_of_fragments.append(k)
-    for h in range(0, len(single_strand)):
-        print(list_of_fragments(h)) # to test the loop worked
-    for i in range(0, len(single_strand)):
-        list_of_lengths.append(len(i))
-    for j in range(0, len(single_strand)):
-        print(list_of_lengths(j)) # to test the loop worked
+    forChart = defaultdict(int)
+    for k in range(1, len(PCR_products)):
+        if( PCR_products[k][0] != '' ):
+            forChart[len( PCR_products[k][0])] += 1
+            list_of_fragments.append(PCR_products[k][0])
+        if( PCR_products[k][1] != '' ):
+            forChart[len( PCR_products[k][1])] += 1
+            list_of_fragments.append(PCR_products[k][1])
+        
     # Print out the number of DNA fragments in PCR products
     # make an array, store lengths in it using a for loop
     print('The number of DNA fragments are: ', (len(list_of_fragments)))
@@ -68,20 +67,22 @@ def getStats(PCR_products):
     # Calculates the average length of all the DNA fragments in PCR products
     average_DNA = numpy.mean(list_of_lengths)
     print('The average length of the DNA fragments are: ', average_DNA)
+    
     # Distribution of lengths of DNA fragments
-    bin_number = 100
-    n, bins, patches = plt.hist(list_of_lengths, bin_number, density = 1, color='blue')
-    y = pylab.yticks(range(0, 100, 10))
-    plt.plot(bins, y, '--', color='black')
-    plt.xlabel('Length range')
-    plt.ylabel('Frequency')
-    plt.title('Distribution of Lengths of DNA strands')
+    plt.xlabel("Sizes")
+    plt.ylabel("Counts")
+    plt.title("Size Distributions")
+    plt.bar(forChart.keys(), forChart.values())
     plt.show()
+
     #Convert all of the ATGC to upper case then search for GC content over the total length of PCR products
-    dna_c_content = list_of_fragments.count('C')
-    dna_g_content = list_of_fragments.count('G')
-    base_average_gc = (dna_c_content + dna_g_content)
-    average_gc = base_average_gc / len(single_strand)
+    C_content = 0
+    G_content = 0
+    for i in list_of_fragments:
+        C_content += i.count('C')
+        G_content += i.count('G')
+    base_average_gc = (C_content + G_content)
+    average_gc = base_average_gc / len(PCR_products)
     print('The Average GC Content is: ', average_gc)
     return
 
@@ -124,7 +125,7 @@ initial_strands = [DNA_N]
 random.seed(time.time())
 
 start_time = time.time()
-for i in range(29):
+for i in range(4):
     copies = []
     for strand in initial_strands:
         temp = []
@@ -156,4 +157,4 @@ for pair in initial_strands:
            if strand != '':
                segment_lengths.append(len(strand))
 print(len(segment_lengths))
-getStats(segment_lengths)
+getStats(initial_strands, segment_lengths)
