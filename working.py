@@ -61,7 +61,7 @@ def getStats(PCR_products, list_of_lengths):
     # make an array, store lengths in it using a for loop
     print('The number of DNA fragments are: ', (len(list_of_fragments)))
     # Prints the maximum length of a DNA strand in PCR products
-    print('The maximum length of the DNA fragments are: ', max(list_of_lengths))
+    print('The maximum length of the DNA fragments are: ', max(list_of_lengths[2:]))
     # Prints the minimum length of a DNA strand in PCR products
     print('The minimum length of the DNA fragments are: ', min(list_of_lengths))
     # Calculates the average length of all the DNA fragments in PCR products
@@ -82,8 +82,8 @@ def getStats(PCR_products, list_of_lengths):
         C_content += i.count('C')
         G_content += i.count('G')
     base_average_gc = (C_content + G_content)
-    average_gc = base_average_gc / len(PCR_products)
-    print('The Average GC Content is: ', average_gc)
+    average_gc = base_average_gc / len(list_of_fragments)
+    print('The Average GC Content is: ' + str(average_gc/average_DNA * 100) + '%')
     return
 
 # Run only once to generate n_gene.txt
@@ -125,7 +125,7 @@ initial_strands = [DNA_N]
 random.seed(time.time())
 
 start_time = time.time()
-for i in range(29):
+for i in range(28):
     copies = []
     for strand in initial_strands:
         temp = []
@@ -153,8 +153,8 @@ print(str((time.time() - start_time)/60) + " Minutes")
 
 segment_lengths = []
 for pair in initial_strands:
-       for strand in pair:
-           if strand != '':
-               segment_lengths.append(len(strand))
+    for strand in pair:
+        if strand != '':
+            segment_lengths.append(len(strand))
 print(len(segment_lengths))
 getStats(initial_strands, segment_lengths)
