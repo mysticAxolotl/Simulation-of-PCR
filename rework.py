@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import pandas
 import random
-import numpy
 import time
 import os
 
@@ -15,33 +13,29 @@ def compliment( dna ):
         comp += compDict[ i ]
     return comp
 
+def getTotalGC( dna ):
+    totalGC = 0
+    for i in dna:
+        toTest = DNA_N[ i[0]: i[1] ]
+        totalGC += toTest.count('G') + toTest.count('C')
+    return totalGC
 
 def stats( fragments, lengths ):
-    minL = 1259
-    maxL = 0
-    totalL = 0
-    totalGC = 0
-    for i in fragments:
-        toTest = DNA_N[ i[0]: i[1] ]
-        rtoTest = rDNA_N[ i[0]: i[1] ]
-        length = len( toTest )
-        rlength = len( rtoTest )
-        totalL += length + rlength
-        if length < minL:
-            minL = length
-        elif length > maxL:
-            maxL = length
-        
-        if rlength < minL:
-            minL = rlength
-        elif rlength > maxL:
-            maxL = rlength
-        totalGC += toTest.count('C') + toTest.count('G') + rtoTest.count('C') + rtoTest.count('G') 
-    
-    print( "The number of DNA fragments are: ", len( fragments ) )
+
+    minL, maxL, totalGC, totalL, totalLF, totalF = 1259, 0, getTotalGC( fragments ), 0, 0,  len( fragments )
+    for key, value in lengths.items():
+        if key < minL:
+            minL = key
+        elif key > maxL:
+            maxL = key
+        totalL += key * value
+        totalLF += value
+
+    print( totalLF )    
+    print( "The number of DNA fragments are: ", totalF * 2 )
     print( "The maximun length of the DNA fragments are: ", maxL )
     print( "The minimum length of the DNA fragments are: ", minL )
-    print( "The average length of the DNA fragments are: ", totalL / ( len( fragments ) * 2 ) )
+    print( "The average length of the DNA fragments are: ", totalL / ( totalF * 2 ) )
     
     # Distribution of lengths of DNA fragments
     plt.xlabel("Sizes")
@@ -51,8 +45,7 @@ def stats( fragments, lengths ):
     plt.show()
 
     #Convert all of the ATGC to upper case then search for GC content over the total length of PCR products
-    averageGC = totalGC / len( fragments ) * 2
-    print( "The Average GC Content is: ", averageGC)
+    print( "The Average GC Content is: ", totalGC / totalF)
     return
 
 # Run only once to generate n_gene.txt
@@ -78,39 +71,40 @@ file.close()
 
 rDNA_N = compliment( DNA_N )
 # primers: (sequence, start, end, GC content %), Primer 3 chosen
-primers = [ ('TGGACCCCAAAATCAGCGAA', 12, 31, 50), ('GTGAGAGCGGTGAACCAAGA', 170, 151, 55) ]
-f_primer = primers[0][0]
-r_primer = primers[1][0][::-1]
-fc_primer = compliment(f_primer)
-rc_primer = compliment(r_primer)
+f_primer, r_primer = compliment( "TGGACCCCAAAATCAGCGAA" ), compliment ( "GTGAGAGCGGTGAACCAAGA" )[::-1]
+# primers = [ ('TGGACCCCAAAATCAGCGAA', 12, 31, 50), ('GTGAGAGCGGTGAACCAAGA', 170, 151, 55) ]
 
 # all dna we've copied and collected 
-tDNA = [ ( 0, 1259 ) ]
+tDNA = []
 lengthDict = defaultdict(int)
-for i in range( 2 ):
-    start = 0
-    end = 0
+lastCycle = [ ( 0, 1259, 0, 1259 ) ]
+for i in range( 10 ):
+    start, end, rstart, rend = 0, 0, 0, 0
     temp = []
-    for strand in tDNA:
+    for strand in lastCycle:
         falloff = random.randint(-50, 50) + 178
-        toTest = rDNA_N[ strand[0]: strand[1] ] 
-        start = toTest.find(fc_primer) 
+        rfalloff = random.randint( -50, 50 ) + 178
+        start = rDNA_N[ strand[2]: strand[3] ].find( f_primer )
+        rend = DNA_N[ strand[0]:strand[1] ].find( r_primer )
         if start != -1:
             end = start + falloff + 20
+            if start < strand[2]:
+                start = strand[2]
+            temp.append( ( start, end, strand[2], strand[3] ) )
             lengthDict[ end - start ] += 1
-            temp.append( ( start, end ) )
+            lengthDict[ strand[3] - strand[2] ] += 1
 
-        falloff = random.randint(-50, 50) + 178
-        toTest = DNA_N[ strand[0]:strand[1] ]
-        end = toTest.rfind( rc_primer )
-        if start != -1:
+        if rend != -1:
+            rstart = rend - rfalloff
             end += 20
-            start = end - falloff
-            if start < 0:
-                start = 0
-            lengthDict[ end - start ] += 1
-            temp.append( ( start, end ) )
-    for i in temp:
-        tDNA.append( i )
-tDNA.remove( ( 0, 1259 ) )
+            if rstart < strand[0]:
+                rstart = strand[0]
+            temp.append( ( strand[0], strand[1], rstart, rend ) )
+            lengthDict[ rend - rstart ] += 1
+            lengthDict[ strand[1] - strand[0] ] += 1
+
+    tDNA.extend( lastCycle )
+    lastCycle.clear()
+    lastCycle.extend( temp )
+lengthDict.pop( 1259 )
 stats( tDNA, lengthDict )
