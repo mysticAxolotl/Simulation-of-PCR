@@ -3,6 +3,7 @@ from collections import defaultdict
 import random
 import time
 import os
+import sys
 
 random.seed(time.time())
 
@@ -17,7 +18,7 @@ def averageGC_totalLength( dna, segments, lengths ):
         Ltotal += key * value
     return ( GCtotal * 2 / Ltotal ) * 100, Ltotal
 
-def stats( dna, segments, lengths ):
+def stats( dna, segments, lengths, cycles ):
     Lmax, Lmin, Ftotal = 0, 1259, len( segments ) * 2
     averageGC, Ltotal = averageGC_totalLength( dna, segments, lengths )
     
@@ -31,6 +32,7 @@ def stats( dna, segments, lengths ):
     print( "The maximun length of the DNA fragments are:", Lmax )
     print( "The minimum length of the DNA fragments are:", Lmin )
     print( "The average length of the DNA fragments are:", Ltotal / Ftotal )
+    print( "Segment loss is:", ( 2 ** cycles - 2 ** ( cycles - 1 ) - Ftotal / 2 ) )
     print( "Segment loss rate is:", ( 2 ** 10 - ( Ftotal / 2 ) ) / 2 ** 10 * 100 )
     print( "The average GC content is:", averageGC, "percent" )
     
@@ -49,10 +51,10 @@ def compliment( dna ):
         comp += compDict[ i ]
     return comp
 
-def PCR( dna, dnaCompliment, fPrimer, rPrimer ):
+def PCR( dna, dnaCompliment, fPrimer, rPrimer, cycles ):
     totalDNA, lengths, lastCycle = [], defaultdict(int), [ ( 0, 1259, 0, 1259 ) ]
     fstart, fend, rstart, rend = 0, 0, 0, 0
-    for cycles in range( 11 ):
+    for cycles in range( cycles ):
         temp = []
         for i in lastCycle:
             fstart = dnaCompliment[ i[0]: i[1] ].find( fPrimer )
@@ -99,5 +101,7 @@ file.close()
 dnaCompliment = compliment( dna )
 f_primer, r_primer = compliment( "TGGACCCCAAAATCAGCGAA" ), compliment ( "GTGAGAGCGGTGAACCAAGA" )[::-1] 
 
-segments, lengths = PCR( dna, compliment( dna ), compliment( "TGGACCCCAAAATCAGCGAA" ), compliment( "GTGAGAGCGGTGAACCAAGA" )[::-1] )
-stats( dna, segments, lengths )
+cycles = int( sys.argv[1] )
+print( cycles )
+segments, lengths = PCR( dna, compliment( dna ), compliment( "TGGACCCCAAAATCAGCGAA" ), compliment( "GTGAGAGCGGTGAACCAAGA" )[::-1], cycles )
+stats( dna, segments, lengths, cycles )
