@@ -31,10 +31,10 @@ def stats( dna, segments, lengths, cycles ):
     print( "The number of DNA fragments are:", Ftotal )
     print( "The maximun length of the DNA fragments are:", Lmax )
     print( "The minimum length of the DNA fragments are:", Lmin )
-    print( "The average length of the DNA fragments are:", Ltotal / Ftotal )
-    print( "Segment loss is:", ( 2 ** cycles - Stotal ) )
-    print( "Segment loss rate is", ( 2 ** cycles - Stotal ) / 2 ** cycles * 100 )
-    print( "The average GC content is:", averageGC, "percent" )
+    print( "The average length of the DNA fragments are:", format( Ltotal / Ftotal, ".4f" ) )
+    print( "Segment loss is:", 2 ** cycles - Stotal )
+    print( "Segment loss rate is", format( ( 2 ** cycles - Stotal ) / 2 ** cycles * 100, ".4f" ), "percent" )
+    print( "The average GC content is:", format( averageGC, ".4f" ), "percent" )
     
     # Distribution of lengths of DNA fragments
     # plt.xlabel("Sizes")
@@ -59,14 +59,14 @@ def PCR( cycles ):
         for i in lastCycle:
             fstart, rend = 11, 170
             if not fstart < i[2]:
-                fend = fstart + 188 + random.randint( -50, 50 )
+                fend = fstart + 178 + random.randint( -25, 25 )
                 if fend > i[3]:
                     fend = i[3]
                 temp.append( ( fstart, fend, i[2], i[3] ) )
                 lengths[ fend - fstart ] += 1
             
             if not rend > i[1]:
-                rstart = rend - 20 - 188 + random.randint( -50, 50 )
+                rstart = rend - 20 - 178 + random.randint( -25, 25 )
                 if rstart < i[0]:
                     rstart = i[0]
                 temp.append( ( i[0], i[1], rstart, rend ) )
