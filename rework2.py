@@ -13,7 +13,6 @@ def averageGC_totalLength( dna, segments, lengths ):
     for i in segments:
         temp = dna[ i[0]:i[1] ]
         GCtotal += temp.count( 'G' ) + temp.count( 'C' )
-        # GCtotal += temp.count( 'G' or 'C' )
     for key, value in lengths.items():
         Ltotal += key * value
     return ( GCtotal * 2 / Ltotal ) * 100, Ltotal
@@ -25,15 +24,16 @@ def stats( dna, segments, lengths, cycles ):
     for key, value in lengths.items():
         if key < Lmin:
             Lmin = key
-        elif key > Lmax:
+        if key > Lmax:
             Lmax = key
+
     print( "The number of DNA segments are:", Ftotal / 2 )
     print( "The number of DNA fragments are:", Ftotal )
     print( "The maximun length of the DNA fragments are:", Lmax )
     print( "The minimum length of the DNA fragments are:", Lmin )
     print( "The average length of the DNA fragments are:", Ltotal / Ftotal )
-    print( "Segment loss is:", ( 2 ** cycles - 2 ** ( cycles - 1 ) - Ftotal / 2 ) )
-    print( "Segment loss rate is:", ( 2 ** 10 - ( Ftotal / 2 ) ) / 2 ** 10 * 100 )
+    print( "Segment loss is:", ( 2 ** cycles - Ftotal / 2 ) )
+    print( "Segment loss rate is", ( 2 ** cycles - Ftotal / 2 ) / 2 ** cycles * 100 )
     print( "The average GC content is:", averageGC, "percent" )
     
     # Distribution of lengths of DNA fragments
@@ -51,27 +51,25 @@ def compliment( dna ):
         comp += compDict[ i ]
     return comp
 
-def PCR( dna, dnaCompliment, fPrimer, rPrimer, cycles ):
-    totalDNA, lengths, lastCycle = [], defaultdict(int), [ ( 0, 1259, 0, 1259 ) ]
+def PCR( cycles ):
+    totalDNA, lengths, lastCycle = [ ( 0, 1259, 0, 1259 ) ], defaultdict(int), [ ( 0, 1259, 0, 1259 ) ]
     fstart, fend, rstart, rend = 0, 0, 0, 0
     for cycles in range( cycles ):
         temp = []
         for i in lastCycle:
-            fstart = dnaCompliment[ i[0]: i[1] ].find( fPrimer )
-            rend = dna[ i[2]: i[3] ].find( rPrimer )
-            if fstart != -1:
-                fend = fstart + 188 + random.randint(-50, 50)
+            fstart, rend = 11, 170
+            if not fstart < i[2]:
+                fend = fstart + 188 + random.randint( -50, 50 )
                 if fend > i[3]:
                     fend = i[3]
                 temp.append( ( fstart, fend, i[2], i[3] ) )
                 lengths[ fend - fstart ] += 1
             
-            if rend != -1:
-                rstart = rend - 188 + random.randint(-50, 50)
-                rend += 20
+            if not rend > i[1]:
+                rstart = rend - 20 - 188 + random.randint( -50, 50 )
                 if rstart < i[0]:
                     rstart = i[0]
-                temp.append( ( i[0], i[1], rstart, rend) )
+                temp.append( ( i[0], i[1], rstart, rend ) )
                 lengths[ rend - rstart ] += 1
         totalDNA.extend( lastCycle )
         lastCycle.clear()
@@ -98,10 +96,11 @@ if not(os.path.exists('./n_gene.txt')):
 file = open( 'n_gene.txt', 'r' )
 dna = file.read() # template DNA strand for N gene (lecture 7, 32:35)
 file.close()
-dnaCompliment = compliment( dna )
-f_primer, r_primer = compliment( "TGGACCCCAAAATCAGCGAA" ), compliment ( "GTGAGAGCGGTGAACCAAGA" )[::-1] 
+# Primer indexes within the dna string
+# We do not need to store the primer strings
+# Forward: 11:31
+# Reverse: 50:70
 
 cycles = int( sys.argv[1] )
-print( cycles )
-segments, lengths = PCR( dna, compliment( dna ), compliment( "TGGACCCCAAAATCAGCGAA" ), compliment( "GTGAGAGCGGTGAACCAAGA" )[::-1], cycles )
+segments, lengths = PCR(  cycles )
 stats( dna, segments, lengths, cycles )
