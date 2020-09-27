@@ -12,14 +12,12 @@ def averageGC_totalLength( dna, segments, lengths ):
     GCtotal = 0
     Ltotal = 0
     for i in segments:
-        temp = dna[ i[0]:i[1] ]
-        for j in temp:
-            GCDict[ j ] += 1
-        temp = dna[ i[2]:i[3] ]
-        for j in temp:
-            GCDict[ j ] += 1
-    Ltotal = GCDict['A'] + GCDict['T'] + GCDict['G'] + GCDict['C']
-    GCtotal = GCDict['G'] + GCDict['C']
+        temp = dna[ i[0]:i[1] ] + dna[ i[2]:i[3] ]
+        GCtotal += temp.count('G') + temp.count('C')
+    
+    for key, value in lengths.items():
+        Ltotal += key * value
+    
     return GCtotal / Ltotal * 100, Ltotal
 
 def stats( dna, segments, lengths, cycles ):
@@ -42,11 +40,11 @@ def stats( dna, segments, lengths, cycles ):
     print( "The average GC content is:", averageGC, "percent" )
     
     # Distribution of lengths of DNA fragments
-    plt.xlabel("Sizes")
-    plt.ylabel("Counts")
-    plt.title("Size Distributions")
-    plt.bar( lengths.keys(), lengths.values())
-    plt.show()
+    # plt.xlabel("Sizes")
+    # plt.ylabel("Counts")
+    # plt.title("Size Distributions")
+    # plt.bar( lengths.keys(), lengths.values())
+    # plt.show()
     return
 
 def compliment( dna ):
