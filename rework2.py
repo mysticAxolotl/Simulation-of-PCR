@@ -7,28 +7,25 @@ import sys
 
 random.seed(time.time())
 
-def averageGC_totalLength( dna, segments, lengths ):
+def averageGC_totalLength_max_min( dna, segments, lengths ):
     GCDict = { 'A': 0, 'T': 0, 'G': 0, 'C':0 }
-    GCtotal = 0
-    Ltotal = 0
+    GCtotal, Ltotal, mx, mn = 0, 0, 0, 1259
     for i in segments:
         temp = dna[ i[0]:i[1] ] + dna[ i[2]:i[3] ]
         GCtotal += temp.count('G') + temp.count('C')
     
     for key, value in lengths.items():
         Ltotal += key * value
+        if key < mn:
+            mn = key
+        if key > mx:
+            mx = key
     
-    return GCtotal / Ltotal * 100, Ltotal
+    return GCtotal / Ltotal * 100, Ltotal, mn, mx
 
 def stats( dna, segments, lengths, cycles ):
-    Lmax, Lmin, Ftotal, Stotal = 0, 1259, len( segments ) * 2, len( segments )
-    averageGC, Ltotal = averageGC_totalLength( dna, segments, lengths )
-    
-    for key, value in lengths.items():
-        if key < Lmin:
-            Lmin = key
-        if key > Lmax:
-            Lmax = key
+    Ftotal, Stotal = len( segments ) * 2, len( segments )
+    averageGC, Ltotal, Lmin, Lmax = averageGC_totalLength_max_min( dna, segments, lengths )
 
     print( "The number of DNA segments are:", Stotal )
     print( "The number of DNA fragments are:", Ftotal )
