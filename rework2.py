@@ -8,17 +8,22 @@ import sys
 random.seed(time.time())
 
 def averageGC_totalLength( dna, segments, lengths ):
+    GCDict = { 'A': 0, 'T': 0, 'G': 0, 'C':0 }
     GCtotal = 0
     Ltotal = 0
     for i in segments:
         temp = dna[ i[0]:i[1] ]
-        GCtotal += temp.count( 'G' ) + temp.count( 'C' )
-    for key, value in lengths.items():
-        Ltotal += key * value
-    return ( GCtotal * 2 / Ltotal ) * 100, Ltotal
+        for j in temp:
+            GCDict[ j ] += 1
+        temp = dna[ i[2]:i[3] ]
+        for j in temp:
+            GCDict[ j ] += 1
+    Ltotal = GCDict['A'] + GCDict['T'] + GCDict['G'] + GCDict['C']
+    GCtotal = GCDict['G'] + GCDict['C']
+    return GCtotal / Ltotal * 100, Ltotal
 
 def stats( dna, segments, lengths, cycles ):
-    Lmax, Lmin, Ftotal = 0, 1259, len( segments ) * 2
+    Lmax, Lmin, Ftotal, Stotal = 0, 1259, len( segments ) * 2, len( segments )
     averageGC, Ltotal = averageGC_totalLength( dna, segments, lengths )
     
     for key, value in lengths.items():
@@ -27,13 +32,13 @@ def stats( dna, segments, lengths, cycles ):
         if key > Lmax:
             Lmax = key
 
-    print( "The number of DNA segments are:", Ftotal / 2 )
+    print( "The number of DNA segments are:", Stotal )
     print( "The number of DNA fragments are:", Ftotal )
     print( "The maximun length of the DNA fragments are:", Lmax )
     print( "The minimum length of the DNA fragments are:", Lmin )
     print( "The average length of the DNA fragments are:", Ltotal / Ftotal )
-    print( "Segment loss is:", ( 2 ** cycles - Ftotal / 2 ) )
-    print( "Segment loss rate is", ( 2 ** cycles - Ftotal / 2 ) / 2 ** cycles * 100 )
+    print( "Segment loss is:", ( 2 ** cycles - Stotal ) )
+    print( "Segment loss rate is", ( 2 ** cycles - Stotal ) / 2 ** cycles * 100 )
     print( "The average GC content is:", averageGC, "percent" )
     
     # Distribution of lengths of DNA fragments
