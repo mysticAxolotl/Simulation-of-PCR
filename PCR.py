@@ -1,128 +1,167 @@
+import matplotlib.pyplot as plt
+from collections import defaultdict
+import random
+import time
 import os
-file = open('SARS_COV2.fasta', 'r')
-comments = file.readline()
-SARS_COV2_genome = file.read()
-file.close()
-SARS_COV2_genome = SARS_COV2_genome.replace('\n','')
+import sys
 
-#extract N gene from 28274:29533
-N_gene = SARS_COV2_genome[28273:29533]
+random.seed(time.time())
 
-cDNA_N = N_gene.replace('A', 'X') # replace A with X
-cDNA_N = cDNA_N.replace('T', 'A')
-cDNA_N = cDNA_N.replace('T', 'A')
-cDNA_N = cDNA_N.replace('T', 'A')
-cDNA_N = cDNA_N.replace('T', 'A')
-cDNA_N = cDNA_N.replace('T', 'A')
+#-------------------------------------------------------------
+# Gets the N gene from SARS_COV_2 and returns the string
+#
+def getNGene():
+    # Run only once to generate n_gene.txt
+    if not os.path.exists( "./n_gene.txt" ):
+        file = open( "SARS_COV2.fasta", 'r' )
+        file.readline()
+        SARS_COV2_genome = file.read()
+        file.close()
+        SARS_COV2_genome = SARS_COV2_genome.replace( '\n', '' )
 
-ccDNA_N = N_gene #complementary strand of the cDNA strand
+        N_gene = SARS_COV2_genome[ 28273: 29533 ]
 
-DNA_N = (cDNA_N, ccDNA_N)
+        file = open( "n_gene.txt", 'w' )
+        file.write( N_gene )
+        file.close()
 
-primers = getPrimers(DNA_N)
+    file = open( "n_gene.txt", 'r' )
+    dna = file.read()
+    file.close()
 
-PCR_products = PCR(DNA_N, primers, fall_off_rate)
+    return dna
 
-# a python function
-def get_GCcontent(dna):
-    dna = dna.upper()
-    return (dna.count("C")+dna.count("G"))/len(dna)
+#-------------------------------------------------------------
+# Finds average GC, total length of fragments, and the min/max
+# lengths of all fragments
+#   $dna: string
+#       The strand of dna we copied in PCR 
+#   $segments: array of tuples 
+#       All the dna segments we copied
+#
+def averageGC_totalLength_max_min( dna, segments ):
 
+    # $GCtotal: total # of 'G' and 'C' in all fragments
+    # $Ltotal: total length of all fragments
+    # $mx, $mn: max/min length of all fragments
+    GCtotal, Ltotal, Stotal, mx, mn = 0, 0, 0, 0, 1259
 
-dna1 = "ATGaCGgaTCAGCCGcAAtACataCACTgttca"
-print(get_GCcontent(dna1))
+    lengths = defaultdict(int)
+    
+    # Loops through our dna segments and counts the GC content of each
+    # fragment, and populates the lengths dict
+    for i in segments:
+        lengths[ i[1] - i[0] ] += 1
+        lengths[ i[3] - i[2] ] += 1
+        temp = dna[ i[0]:i[1] ] + dna[ i[2]:i[3] ]
+        GCtotal += temp.count('G') + temp.count('C')
+    lengths.pop( 1259 )
 
-# param: a double strand dna, a tuple of 2 strings, representing 2 segments of dna from 5" to 3"
-# return: a tuple of 2 strs representing the pair of primers (5" -> 3", GC content > 40%, bases btw the 2 primers: ~200)
-def getPrimers(dna_segment):
-    # ....
-    primers = ()  # (forward_primer, reverse_primer)
-    return primers
+    # Loops through the length dictionary and adds all lengths
+    # finds min/max
+    for key, value in lengths.items():
+        Stotal += value
+        Ltotal += key * value
+        if key < mn:
+            mn = key
+        if key > mx:
+            mx = key
 
+    # Average gc is in a percentage
+    return GCtotal / Ltotal * 100, Ltotal / Stotal, mn, mx, lengths
 
-# param: a single strand 5" to 3" dna
-# return: a single strand 5" to 3" dna that is reverse complement to the input strand
-def reverse_complement(dna5_3):  # input is a strand from 5" to 3"
-    rc_dna5_3 = dna5_3.replace('A', 'X')  # replace A by X
-    rc_dna5_3 = rc_dna5_3.replace('T', 'A')  # replace T by A
-    rc_dna5_3 = rc_dna5_3.replace('X', 'T')  # replace X by A
-    rc_dna5_3 = rc_dna5_3.replace('C', 'X')  # replace C by X
-    rc_dna5_3 = rc_dna5_3.replace('G', 'C')
-    rc_dna5_3 = rc_dna5_3.replace('X', 'G')
-    rc_dna5_3 = rc_dna5_3[::-1]  # reverse the complementary strand to have a strand from 5" to 3"
-    return rc_dna5_3
+#-------------------------------------------------------------
+# Prints the stats of the segments we've collected in pcr, and
+# the histogram of lengths
+#   $dna: string
+#       The strand of dna we copied in PCR 
+#   $segments: array of tuples 
+#       All the dna segments we copied
+#   $cycles: int
+#       number of pcr cycles that were run
+#
+def stats( dna, segments, cycles ):
+    # Ftotal: Number of fragments
+    # Stotal: Number of segments
+    # averageGC, averageL: Average GC content/length
+    # Lmin, Lmax: Max/min of lenghts
+    # Lengths: Dict of lengths and how often they occur
+    #          needed for the histogram
+    # precision: How many decimal places we want to display when 
+    #            printing stats
+    Ftotal, Stotal = len( segments ) * 2, len( segments )
+    averageGC, averageL, Lmin, Lmax, lengths = averageGC_totalLength_max_min( dna, segments )
+    precision = ".3f"
 
-
-# param: a list of tuples of 2 strs, representing double stranded dna segments
-# return: a list of single strand dna segments
-def denaturation(dna_segments):
-    singleStrandDNAs = []
-    return singleStrandDNAs
-
-
-# param: a list of single strand dna segments, each segment is from 5" to 3"
-# return: a list of tuples of 2 strs (2 dna segments from 5" to 3")
-def annealing_elongation(singleStrandDNAs, primers, fall_of_rate):
-    # ...
-    doubleStrandedDNAs = [('a','a'),('a','a')]  # get your sequence of dnas
-    return doubleStrandedDNAs
-
-
-# param: gene to be copied (a tuple of 2 strs), fall of rate of DNA polymerase (int), and num_cycles to run PCR (int)
-# return: a list of double stranded dna segments
-def PCR(dna_segment_to_be_copied, fall_of_rate, num_cycles):
-    # ....
-    primers = getPrimers(dna_segment_to_be_copied)
-    cycles = 0
-    PCRproducts = [dna_segment_to_be_copied]
-    while cycles < num_cycles:
-        singleStrandDNAs = denaturation(PCRproducts)
-        PCRproducts = annealing_elongation(singleStrandDNAs, primers, fall_of_rate)
-
-    return PCRproducts
-
-
-# param: a list of tuples of 2 strings representing double stranded DNA segments
-# return: null
-def getStats(PCR_products):
-    # ...
-    # Print out the number of DNA fragments in PCR products
-    print('The number of DNA fragements are: ', PCR_products.count())
-    # Prints the maximum lenth of a DNA strand in PCR products
-    print('The maximum length of the DNA fragments are: ', max(len(PCR_products)))
-    # Prints the minimum length of a DNA strand in PCR products
-    print('The minimum length of the DNA fragments are: ', min(len(PCR_products)))
-    # Calculates the average length of all the DNA fragments in PCR products
-    temp = len(PCR_products)
-    average_DNA = (float(sum(temp) / len(temp)))
-    print('The average length of the DNA fragments are: ', average_DNA)
-    # Distribution of lengths of DNA fragments, uses temp as it is the length of PCR products
-    elements = (element1, element2, element3, element4, element5) #elements a
-    plt.xticks(temp, elements)
-    plt.xlabel('Length range')
-    plt.ylabel('Number of fragments in the range')
-    plt.bar(temp, number_in_range)
-    plt.title('Distribution of Lengths of DNA strands')
-    #Convert all of the ATGC to upper case then search for GC content over the total length of PCR products
-    average_GC_temp = PCR_products.upper()
-    average_GC = (average_GC_temp.count('G') + average_GC_temp.count('C')) / len(average_GC_temp)
-    print()
+    print(    "The number of DNA segments are:", Stotal, \
+            "\nThe number of DNA fragments are:", Ftotal, \
+            "\nThe maximun length of the DNA fragments are:", Lmax, \
+            "\nThe minimum length of the DNA fragments are:", Lmin, \
+            "\nThe average length of the DNA fragments are:", format( averageL, precision ), \
+            "\nSegment loss is:", 2 ** cycles - Stotal, \
+            "\nSegment loss rate is", format( ( 2 ** cycles - Stotal ) / 2 ** cycles * 100, precision ), "percent", \
+            "\nThe average GC content is:", format( averageGC, precision ), "percent" )
+    
+    # Distribution of lengths of DNA fragments
+    plt.xlabel("Size")
+    plt.ylabel("Count")
+    plt.title("Size Distributions")
+    plt.bar( lengths.keys(), lengths.values())
+    plt.show()
     return
 
+#-------------------------------------------------------------
+# Runs the entire PCR process
+#   $cycles: int
+#       number of PCR cycles to run
+#
+def PCR( cycles, falloff = ( 178, 25, 35 ) ):
+    # totalDNA: all the dna segments we copy
+    # lastCycle: The copies from the last cycle we ran
+    # fstart/fend: start/end points where the forward primer binds to the dna
+    # rstart/rend: start/end points where the reverse primer binds to the dna
+    totalDNA, lastCycle  = [ ( 0, 1259, 0, 1259 ) ], [ ( 0, 1259, 0, 1259 ) ]
+    fstart, fend, rstart, rend = 0, 0, 0, 0
+    print( "Fall off is: ", falloff[0], " + rand( -", falloff[1], ", ", falloff[2],")", sep='' )
 
-# the gene needs to be amplified
-S_gene = "ATG..."
-cDNA_S = reverse_complement(S_gene)
-rccDNA_S = S_gene
+    for cycles in range( cycles ):
+        # stores all copies we've made this cycle
+        temp = []
+        for i in lastCycle:
+            # defines where the first primer begins and the reverse ends 
+            # in the dna string
+            fstart, rend = 11, 170
 
-# It is the double strand DNA {cDNA_S, rccDNA_S} that can be amplified.
-DNA_S = (cDNA_S, rccDNA_S)
+            # if fstart < i[2] means there isn't enough dna to bind to properly
+            if not fstart < i[2]:
+                fend = fstart + falloff[0] + random.randint( -falloff[1], falloff[2] )
+                # fend cannot go past the dna we're copying since it doesn't exist
+                if fend > i[3]:
+                    fend = i[3]
+                temp.append( ( fstart, fend, i[2], i[3] ) )
+            
+            # if rend is > i[1] again means there isn't enough dna to bind to properly
+            if not rend > i[1]:
+                rstart = rend - 20 - falloff[0] + random.randint( -falloff[1], falloff[2] )
+                if rstart < i[0]:
+                    rstart = i[0]
+                temp.append( ( i[0], i[1], rstart, rend ) )
+        
+        # adds last cycle to total DNA, clears last cycle, then adds the copies we 
+        # got in the current cycle
+        totalDNA.extend( lastCycle )
+        lastCycle.clear()
+        lastCycle.extend( temp )
+    return totalDNA
 
-fall_of_rate = 50  # between -50 to 50
-num_cycles = 20  # PCR cycles
+# Primer indexes within the dna string: 
+# We do not need to store the primer strings
+# or their compliments
+#   Forward: 11:31      TGGACCCCAAAATCAGCGAA
+#   Reverse: 50:70      GTGAGAGCGGTGAACCAAGA
 
-# call PCR function to simulation the PCR process
-PCR_products = PCR(DNA_S, fall_of_rate, num_cycles)
-
-# print stats of PCR_products
-getStats(PCR_products)
+cycles = int( sys.argv[1] )
+if len( sys.argv ) > 2:
+    stats( getNGene(), PCR( cycles, ( int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]) ) ), cycles ) 
+else:
+    stats( getNGene(), PCR( cycles ), cycles )
