@@ -7,6 +7,9 @@ import sys
 
 random.seed(time.time())
 
+#-------------------------------------------------------------
+# Gets the N gene from SARS_COV_2 and returns the string
+#
 def getNGene():
     # Run only once to generate n_gene.txt
     if not os.path.exists( "./n_gene.txt" ):
@@ -112,7 +115,7 @@ def stats( dna, segments, cycles ):
 #   $cycles: int
 #       number of PCR cycles to run
 #
-def PCR( cycles ):
+def PCR( cycles, falloff = ( 178, 25, 25 ) ):
     # totalDNA: all the dna segments we copy
     # lastCycle: The copies from the last cycle we ran
     # fstart/fend: start/end points where the forward primer binds to the dna
@@ -130,7 +133,7 @@ def PCR( cycles ):
 
             # if fstart < i[2] means there isn't enough dna to bind to properly
             if not fstart < i[2]:
-                fend = fstart + 178 + random.randint( -25, 25 )
+                fend = fstart + falloff[0] + random.randint( -falloff[1], falloff[2] )
                 # fend cannot go past the dna we're copying since it doesn't exist
                 if fend > i[3]:
                     fend = i[3]
@@ -138,7 +141,7 @@ def PCR( cycles ):
             
             # if rend is > i[1] again means there isn't enough dna to bind to properly
             if not rend > i[1]:
-                rstart = rend - 20 - 178 + random.randint( -25, 25 )
+                rstart = rend - 20 - falloff[0] + random.randint( -falloff[1], falloff[2] )
                 if rstart < i[0]:
                     rstart = i[0]
                 temp.append( ( i[0], i[1], rstart, rend ) )
@@ -153,8 +156,11 @@ def PCR( cycles ):
 # Primer indexes within the dna string: 
 # We do not need to store the primer strings
 # or their compliments
-#   Forward: 11:31
-#   Reverse: 50:70
+#   Forward: 11:31      TGGACCCCAAAATCAGCGAA
+#   Reverse: 50:70      GTGAGAGCGGTGAACCAAGA
 
 cycles = int( sys.argv[1] )
-stats( getNGene(), PCR( cycles ), cycles )
+if len( sys.argv ) > 2:
+    stats( getNGene(), PCR( cycles, ( int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]) ) ), cycles ) 
+else:
+    stats( getNGene(), PCR( cycles ), cycles )
